@@ -82,7 +82,7 @@ const AdminDiscussionForum = () => {
   const handleEditThread = async () => {
     try {
       // Send a PUT request to update the thread
-      const response = await axios.put(
+      await axios.put(
         `${API_BASE_URL}/api/threads/${selectedThread._id}`, // Correct endpoint
         selectedThread, // Updated thread data
         {
@@ -106,7 +106,7 @@ const AdminDiscussionForum = () => {
   const handleEditReply = async () => {
     try {
       // Send a PUT request to update the reply
-      const response = await axios.put(
+      await axios.put(
         `${API_BASE_URL}/api/replies/${selectedReply._id}`, // Correct endpoint
         selectedReply, // Updated reply data
         {
