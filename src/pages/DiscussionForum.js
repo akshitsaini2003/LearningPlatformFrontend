@@ -28,7 +28,7 @@ const DiscussionForum = () => {
     } finally {
       setLoading(false); // Loading complete
     }
-  },[API_BASE_URL]);
+  }, [API_BASE_URL]);
   useEffect(() => {
     fetchThreads();
   }, [fetchThreads]);
@@ -54,17 +54,17 @@ const DiscussionForum = () => {
   const handleReplySubmit = async (e, threadId) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      await axios.post(
         `${API_BASE_URL}/api/replies`, // Use the correct endpoint
         { content: newReply.content, threadId }, // Include threadId in the request body
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
-  
+
       // Fetch updated threads to reflect the new reply
       await fetchThreads();
-  
+
       setNewReply({ content: '', threadId: '' });
       setShowReplyForm(null); // Close the reply form
       toast.success('Reply added successfully');
