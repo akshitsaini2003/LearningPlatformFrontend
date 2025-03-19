@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Card, ListGroup, Spinner } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import * as XLSX from 'xlsx';
 
 const AdminQuizCreation = () => {
   const [title, setTitle] = useState('');
@@ -18,6 +19,61 @@ const AdminQuizCreation = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const API_BASE_URL = process.env.REACT_APP_API_URL;
+
+
+
+  // Inside your component
+  const handleExcelFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      // Extract the quiz title and description from the first row
+      const [headerRow, ...questionRows] = json;
+
+      // Ensure the Excel file has the correct format
+      if (
+        headerRow[0] !== 'Quiz Title' ||
+        headerRow[1] !== 'Quiz Description' ||
+        headerRow[2] !== 'Question Text' ||
+        headerRow[3] !== 'Option 1' ||
+        headerRow[4] !== 'Option 2' ||
+        headerRow[5] !== 'Option 3' ||
+        headerRow[6] !== 'Option 4' ||
+        headerRow[7] !== 'Correct Answer'
+      ) {
+        toast.error('Invalid Excel format. Please use the correct template.');
+        return;
+      }
+
+      // Extract the quiz title and description from the second row
+      const [title, description] = questionRows[0];
+
+      // Extract questions from the remaining rows
+      const questions = questionRows.slice(1).map((row) => ({
+        questionText: row[2], // Question Text
+        options: [row[3], row[4], row[5], row[6]], // Options 1 to 4
+        correctAnswer: row[7], // Correct Answer
+      }));
+
+      // Update state
+      setTitle(title);
+      setDescription(description);
+      setQuestions(questions);
+      toast.success('Quiz imported from Excel successfully!');
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
+
   // Fetch topics and users on component mount
   useEffect(() => {
     const fetchTopics = async () => {
@@ -81,7 +137,7 @@ const AdminQuizCreation = () => {
     };
 
     fetchQuizzes();
-  }, [topicId,API_BASE_URL]);
+  }, [topicId, API_BASE_URL]);
 
   // Handle question text change
   const handleQuestionChange = (index, value) => {
@@ -121,7 +177,7 @@ const AdminQuizCreation = () => {
   const handleUserSelection = (userId) => {
     // Find the user object from the users array
     const user = users.find((user) => user._id === userId);
-  
+
     if (selectedUsers.includes(userId)) {
       setSelectedUsers(selectedUsers.filter((id) => id !== userId));
       toast.success(`User "${user.name}" removed from allowed list!`); // Include user's name
@@ -225,6 +281,27 @@ const AdminQuizCreation = () => {
           <span className="visually-hidden">Loading...</span>
         </Spinner>
       )}
+      {/* // In the return statement, add the file input and button */}
+      <Form.Group className="mb-3">
+        <div className="d-flex justify-content-between align-items-center">
+          <Button variant="info" onClick={() => document.getElementById('excelFileInput').click()}>
+            📂 Insert From Excel
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => window.open('/utils/quizCreationSample.xlsx', '_blank')}
+          >
+            ⬇️ Download Excel Sample
+          </Button>
+        </div>
+        <Form.Control
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={handleExcelFileUpload}
+          style={{ display: 'none' }}
+          id="excelFileInput"
+        />
+      </Form.Group>
 
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
