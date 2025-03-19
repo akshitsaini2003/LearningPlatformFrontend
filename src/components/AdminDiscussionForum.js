@@ -81,7 +81,19 @@ const AdminDiscussionForum = () => {
 
   const handleEditThread = async () => {
     try {
+      // Send a PUT request to update the thread
+      const response = await axios.put(
+        `${API_BASE_URL}/api/threads/${selectedThread._id}`, // Correct endpoint
+        selectedThread, // Updated thread data
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
+  
+      // Fetch updated threads to reflect the changes
       await fetchThreads();
+  
+      // Show success message and close the modal
       toast.success('Thread updated successfully');
       setError('');
       setShowEditThreadModal(false);
@@ -93,7 +105,19 @@ const AdminDiscussionForum = () => {
 
   const handleEditReply = async () => {
     try {
+      // Send a PUT request to update the reply
+      const response = await axios.put(
+        `${API_BASE_URL}/api/replies/${selectedReply._id}`, // Correct endpoint
+        selectedReply, // Updated reply data
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
+  
+      // Fetch updated replies to reflect the changes
       await fetchReplies();
+  
+      // Show success message and close the modal
       toast.success('Reply updated successfully');
       setError('');
       setShowEditReplyModal(false);
