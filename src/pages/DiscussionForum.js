@@ -54,18 +54,22 @@ const DiscussionForum = () => {
   const handleReplySubmit = async (e, threadId) => {
     e.preventDefault();
     try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/replies`, // Use the correct endpoint
+        { content: newReply.content, threadId }, // Include threadId in the request body
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
+  
       // Fetch updated threads to reflect the new reply
       await fetchThreads();
-
+  
       setNewReply({ content: '', threadId: '' });
       setShowReplyForm(null); // Close the reply form
-      // setSuccess('Reply added successfully');
-      setError('');
-      toast.success('Reply added successfully'); // Display success toast
+      toast.success('Reply added successfully');
     } catch (err) {
-      setError('Error adding reply');
-      setSuccess('');
-      toast.error('Error adding reply'); // Display error toast
+      toast.error('Error adding reply');
     }
   };
 
