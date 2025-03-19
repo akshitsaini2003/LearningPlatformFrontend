@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   // Check if the logged-in user is an admin
   useEffect(() => {
     const userRole = localStorage.getItem('role');
@@ -43,28 +44,21 @@ const AdminDashboard = () => {
   }, [API_BASE_URL]);
 
   // Delete user
-// Delete user
-const handleDeleteUser = async (id) => {
-  if (!window.confirm('Are you sure you want to delete this user?')) return;
+  const handleDeleteUser = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
 
-  try {
-    // Send DELETE request to the server
-    await axios.delete(`${API_BASE_URL}/api/users/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-
-    // Update the users state to remove the deleted user
-    setUsers(users.filter((user) => user._id !== id));
-
-    // Show success message
-    toast.success('User deleted successfully');
-  } catch (err) {
-    // Show error message
-    toast.error('Error deleting user');
-  }
-};
+    try {
+      await axios.delete(`${API_BASE_URL}/api/users/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setUsers(users.filter((user) => user._id !== id));
+      toast.success('User deleted successfully');
+    } catch (err) {
+      toast.error('Error deleting user');
+    }
+  };
 
   // Reset password
   const handleResetPassword = async () => {
@@ -72,7 +66,17 @@ const handleDeleteUser = async (id) => {
       toast.error('Please enter a valid password');
       return;
     }
+
     try {
+      await axios.put(
+        `${API_BASE_URL}/api/users/${selectedUser._id}/password`,
+        { password: newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
       toast.success('Password reset successfully');
       setShowResetModal(false);
       setNewPassword('');
@@ -87,7 +91,17 @@ const handleDeleteUser = async (id) => {
       toast.error('Please select a role');
       return;
     }
+
     try {
+      await axios.put(
+        `${API_BASE_URL}/api/users/${selectedUser._id}/role`,
+        { role: newRole },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
       setUsers(users.map((user) =>
         user._id === selectedUser._id ? { ...user, role: newRole } : user
       ));
@@ -111,8 +125,6 @@ const handleDeleteUser = async (id) => {
   return (
     <Container className="mt-4" style={{ marginBottom: '80px' }}>
       <h2 className="text-center mb-4">Admin Dashboard</h2>
-
-      {/* ToastContainer for notifications */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -133,7 +145,6 @@ const handleDeleteUser = async (id) => {
         </div>
       ) : (
         <>
-          {/* Users Table */}
           <Table striped bordered hover responsive>
             <thead>
               <tr>
@@ -167,13 +178,10 @@ const handleDeleteUser = async (id) => {
                         variant="danger"
                         onClick={() => handleDeleteUser(user._id)}
                         className="mb-2"
-                        style={{
-                          minWidth: '120px', // Uniform Button Width
-                        }}
+                        style={{ minWidth: '120px' }}
                       >
                         🗑 Delete
                       </Button>
-
                       <Button
                         variant="warning"
                         onClick={() => {
@@ -181,13 +189,10 @@ const handleDeleteUser = async (id) => {
                           setShowResetModal(true);
                         }}
                         className="mb-2"
-                        style={{
-                          minWidth: '140px',
-                        }}
+                        style={{ minWidth: '140px' }}
                       >
                         🔑 Reset Password
                       </Button>
-
                       <Button
                         variant="info"
                         onClick={() => {
@@ -196,14 +201,11 @@ const handleDeleteUser = async (id) => {
                           setShowRoleModal(true);
                         }}
                         className="mb-2"
-                        style={{
-                          minWidth: '130px',
-                        }}
+                        style={{ minWidth: '130px' }}
                       >
                         🔄 Update Role
                       </Button>
                     </div>
-
                   </td>
                 </tr>
               ))}
