@@ -60,15 +60,17 @@ const AdminDashboard = () => {
     }
   };
 
-  // Reset password
   const handleResetPassword = async () => {
     if (!newPassword.trim()) {
       toast.error('Please enter a valid password');
       return;
     }
-
+  
+    console.log('Resetting password for user:', selectedUser._id);
+    console.log('New password:', newPassword);
+  
     try {
-      await axios.put(
+      const response = await axios.put(
         `${API_BASE_URL}/api/users/${selectedUser._id}/password`,
         { password: newPassword },
         {
@@ -77,23 +79,27 @@ const AdminDashboard = () => {
           },
         }
       );
+      console.log('Password reset response:', response);
       toast.success('Password reset successfully');
       setShowResetModal(false);
       setNewPassword('');
     } catch (err) {
+      console.error('Error resetting password:', err);
       toast.error('Error resetting password');
     }
   };
-
-  // Update user role
+  
   const handleUpdateRole = async () => {
     if (!newRole) {
       toast.error('Please select a role');
       return;
     }
-
+  
+    console.log('Updating role for user:', selectedUser._id);
+    console.log('New role:', newRole);
+  
     try {
-      await axios.put(
+      const response = await axios.put(
         `${API_BASE_URL}/api/users/${selectedUser._id}/role`,
         { role: newRole },
         {
@@ -102,12 +108,14 @@ const AdminDashboard = () => {
           },
         }
       );
+      console.log('Role update response:', response);
       setUsers(users.map((user) =>
         user._id === selectedUser._id ? { ...user, role: newRole } : user
       ));
       toast.success('Role updated successfully');
       setShowRoleModal(false);
     } catch (err) {
+      console.error('Error updating role:', err);
       toast.error('Error updating role');
     }
   };
