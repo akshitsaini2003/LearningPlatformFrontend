@@ -46,7 +46,6 @@ const AdminDashboard = () => {
   // Delete user
   const handleDeleteUser = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
-
     try {
       await axios.delete(`${API_BASE_URL}/api/users/${id}`, {
         headers: {
@@ -60,62 +59,51 @@ const AdminDashboard = () => {
     }
   };
 
+  // Reset password
   const handleResetPassword = async () => {
     if (!newPassword.trim()) {
       toast.error('Please enter a valid password');
       return;
     }
-  
-    console.log('Resetting password for user:', selectedUser._id);
-    console.log('New password:', newPassword);
-  
     try {
-      const response = await axios.put(
-        `${API_BASE_URL}/api/users/${selectedUser._id}/password`,
-        { password: newPassword },
+      await axios.put(
+        `${API_BASE_URL}/api/users/${selectedUser._id}/reset-password`,
+        { newPassword },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         }
       );
-      console.log('Password reset response:', response);
       toast.success('Password reset successfully');
       setShowResetModal(false);
       setNewPassword('');
     } catch (err) {
-      console.error('Error resetting password:', err);
       toast.error('Error resetting password');
     }
   };
-  
+  // Update user role
   const handleUpdateRole = async () => {
     if (!newRole) {
       toast.error('Please select a role');
       return;
     }
-  
-    console.log('Updating role for user:', selectedUser._id);
-    console.log('New role:', newRole);
-  
     try {
-      const response = await axios.put(
-        `${API_BASE_URL}/api/users/${selectedUser._id}/role`,
-        { role: newRole },
+      await axios.put(
+        `${API_BASE_URL}/api/users/${selectedUser._id}/update-role`,
+        { newRole },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         }
       );
-      console.log('Role update response:', response);
       setUsers(users.map((user) =>
         user._id === selectedUser._id ? { ...user, role: newRole } : user
       ));
       toast.success('Role updated successfully');
       setShowRoleModal(false);
     } catch (err) {
-      console.error('Error updating role:', err);
       toast.error('Error updating role');
     }
   };
@@ -133,6 +121,8 @@ const AdminDashboard = () => {
   return (
     <Container className="mt-4" style={{ marginBottom: '80px' }}>
       <h2 className="text-center mb-4">Admin Dashboard</h2>
+
+      {/* ToastContainer for notifications */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -153,6 +143,7 @@ const AdminDashboard = () => {
         </div>
       ) : (
         <>
+          {/* Users Table */}
           <Table striped bordered hover responsive>
             <thead>
               <tr>
@@ -186,10 +177,13 @@ const AdminDashboard = () => {
                         variant="danger"
                         onClick={() => handleDeleteUser(user._id)}
                         className="mb-2"
-                        style={{ minWidth: '120px' }}
+                        style={{
+                          minWidth: '120px', // Uniform Button Width
+                        }}
                       >
                         🗑 Delete
                       </Button>
+
                       <Button
                         variant="warning"
                         onClick={() => {
@@ -197,10 +191,13 @@ const AdminDashboard = () => {
                           setShowResetModal(true);
                         }}
                         className="mb-2"
-                        style={{ minWidth: '140px' }}
+                        style={{
+                          minWidth: '140px',
+                        }}
                       >
                         🔑 Reset Password
                       </Button>
+
                       <Button
                         variant="info"
                         onClick={() => {
@@ -209,11 +206,14 @@ const AdminDashboard = () => {
                           setShowRoleModal(true);
                         }}
                         className="mb-2"
-                        style={{ minWidth: '130px' }}
+                        style={{
+                          minWidth: '130px',
+                        }}
                       >
                         🔄 Update Role
                       </Button>
                     </div>
+
                   </td>
                 </tr>
               ))}
