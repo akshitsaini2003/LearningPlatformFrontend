@@ -110,57 +110,53 @@ function Quiz({ quiz, userId }) {
 
   // Define handleSubmit
   const handleSubmit = useCallback(async (isAutomaticSubmission = false) => {
-    if (isSubmitted) return;
+  if (isSubmitted) return;
 
-    // Check if all questions are answered (only for manual submission)
-    if (!isAutomaticSubmission) {
-      const unansweredQuestions = quiz.questions.filter((_, index) => !selectedAnswers.hasOwnProperty(index));
-      if (unansweredQuestions.length > 0) {
-        toast.error('Please answer all questions before submitting.');
-        return;
-      }
+  if (!isAutomaticSubmission) {
+    const unansweredQuestions = quiz.questions.filter((_, index) => !selectedAnswers.hasOwnProperty(index));
+    if (unansweredQuestions.length > 0) {
+      toast.error('Please answer all questions before submitting.');
+      return;
     }
+  }
 
-    // Calculate score
-    let score = 0;
-    quiz.questions.forEach((question, index) => {
-      if (selectedAnswers[index] === question.correctAnswer) {
-        score += 10;
-      }
+  let score = 0;
+  quiz.questions.forEach((question, index) => {
+    if (selectedAnswers[index] === question.correctAnswer) {
+      score += 10;
+    }
+  });
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/quizzes/${quiz._id}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, score }),
     });
+    const data = await response.json();
+    if (response.ok) {
+      setResult(`Quiz submitted! Your score: ${score}`);
+      setIsSubmitted(true);
+      toast.success(`Quiz submitted! Your score: ${score}`);
+      speakMessage('Quiz submitted!');
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/quizzes/${quiz._id}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, score }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setResult(`Quiz submitted! Your score: ${score}`);
-        setIsSubmitted(true);
-        toast.success(`Quiz submitted! Your score: ${score}`);
-        speakMessage('Quiz submitted!');
-
-        // Clear any active timeout
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          setTimeoutId(null);
-        }
-
-        // Remove event listeners
-        document.removeEventListener('fullscreenchange', handleFullScreenChange);
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-      } else {
-        setResult(data.message || 'Failed to submit quiz.');
-        toast.error(data.message || 'Failed to submit quiz.');
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        setTimeoutId(null);
       }
-    } catch (err) {
-      setResult('An error occurred. Please try again.');
-      toast.error('An error occurred. Please try again.');
+
+      // Remove event listeners
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    } else {
+      setResult(data.message || 'Failed to submit quiz.');
+      toast.error(data.message || 'Failed to submit quiz.');
     }
-  // }, [isSubmitted, quiz, selectedAnswers, userId, API_BASE_URL, timeoutId, speakMessage]);
-  }, [isSubmitted, quiz, selectedAnswers, userId, API_BASE_URL, timeoutId, speakMessage]);
+  } catch (err) {
+    setResult('An error occurred. Please try again.');
+    toast.error('An error occurred. Please try again.');
+  }
+}, [isSubmitted, quiz, selectedAnswers, userId, API_BASE_URL, timeoutId, speakMessage, handleFullScreenChange, handleVisibilityChange]);
 
   // Update the ref with the latest handleSubmit
   useEffect(() => {
