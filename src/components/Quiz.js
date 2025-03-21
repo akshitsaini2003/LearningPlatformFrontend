@@ -77,7 +77,6 @@
 // export default Quiz;
 
 
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, ListGroup, Form, Button, Alert, Modal } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
@@ -96,73 +95,6 @@ function Quiz({ quiz, userId }) {
 
   // Use a ref to store handleSubmit
   const handleSubmitRef = useRef();
-
-  // Function to speak a message
-  const speakMessage = useCallback((message) => {
-    if (!isSubmitted && 'speechSynthesis' in window) {
-      const speech = new SpeechSynthesisUtterance(message);
-      speech.volume = 1;
-      speech.rate = 1;
-      speech.pitch = 1;
-      window.speechSynthesis.speak(speech);
-    }
-  }, [isSubmitted]);
-
-  // Define handleSubmit
-  const handleSubmit = useCallback(async (isAutomaticSubmission = false) => {
-  if (isSubmitted) return;
-
-  if (!isAutomaticSubmission) {
-    const unansweredQuestions = quiz.questions.filter((_, index) => !selectedAnswers.hasOwnProperty(index));
-    if (unansweredQuestions.length > 0) {
-      toast.error('Please answer all questions before submitting.');
-      return;
-    }
-  }
-
-  let score = 0;
-  quiz.questions.forEach((question, index) => {
-    if (selectedAnswers[index] === question.correctAnswer) {
-      score += 10;
-    }
-  });
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/quizzes/${quiz._id}/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, score }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setResult(`Quiz submitted! Your score: ${score}`);
-      setIsSubmitted(true);
-      toast.success(`Quiz submitted! Your score: ${score}`);
-      speakMessage('Quiz submitted!');
-
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        setTimeoutId(null);
-      }
-
-      // Remove event listeners
-      document.removeEventListener('fullscreenchange', handleFullScreenChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    } else {
-      setResult(data.message || 'Failed to submit quiz.');
-      toast.error(data.message || 'Failed to submit quiz.');
-    }
-  } catch (err) {
-    setResult('An error occurred. Please try again.');
-    toast.error('An error occurred. Please try again.');
-  }
-}, [isSubmitted, quiz, selectedAnswers, userId, API_BASE_URL, timeoutId, speakMessage, handleFullScreenChange, handleVisibilityChange]);
-
-  // Update the ref with the latest handleSubmit
-  useEffect(() => {
-    handleSubmitRef.current = handleSubmit;
-  }, [handleSubmit]);
-
   // Start 10-second timeout
   const startTimeout = useCallback(() => {
     if (timeoutId) clearTimeout(timeoutId);
@@ -176,6 +108,16 @@ function Quiz({ quiz, userId }) {
     setTimeoutId(id);
   }, [timeoutId, warningCount]);
 
+  // Function to speak a message
+  const speakMessage = useCallback((message) => {
+    if (!isSubmitted && 'speechSynthesis' in window) {
+      const speech = new SpeechSynthesisUtterance(message);
+      speech.volume = 1;
+      speech.rate = 1;
+      speech.pitch = 1;
+      window.speechSynthesis.speak(speech);
+    }
+  }, [isSubmitted]);
   // Handle full-screen change
   const handleFullScreenChange = useCallback(() => {
     if (!isSubmitted && !document.fullscreenElement) {
@@ -238,6 +180,63 @@ function Quiz({ quiz, userId }) {
       }
     }
   }, [warningCount, isSubmitted, speakMessage, startTimeout]);
+
+  // Define handleSubmit
+  const handleSubmit = useCallback(async (isAutomaticSubmission = false) => {
+    if (isSubmitted) return;
+  
+    if (!isAutomaticSubmission) {
+      const unansweredQuestions = quiz.questions.filter((_, index) => !selectedAnswers.hasOwnProperty(index));
+      if (unansweredQuestions.length > 0) {
+        toast.error('Please answer all questions before submitting.');
+        return;
+      }
+    }
+  
+    let score = 0;
+    quiz.questions.forEach((question, index) => {
+      if (selectedAnswers[index] === question.correctAnswer) {
+        score += 10;
+      }
+    });
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/quizzes/${quiz._id}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, score }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setResult(`Quiz submitted! Your score: ${score}`);
+        setIsSubmitted(true);
+        toast.success(`Quiz submitted! Your score: ${score}`);
+        speakMessage('Quiz submitted!');
+  
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          setTimeoutId(null);
+        }
+  
+        // Remove event listeners
+        document.removeEventListener('fullscreenchange', handleFullScreenChange);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      } else {
+        setResult(data.message || 'Failed to submit quiz.');
+        toast.error(data.message || 'Failed to submit quiz.');
+      }
+    } catch (err) {
+      setResult('An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
+    }
+  }, [isSubmitted, quiz, selectedAnswers, userId, API_BASE_URL, timeoutId, speakMessage, handleFullScreenChange, handleVisibilityChange]);
+  
+  // Update the ref with the latest handleSubmit
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  }, [handleSubmit]);
+
+
 
   // Add event listeners for full-screen and tab switch
   useEffect(() => {
