@@ -61,7 +61,7 @@ const Dashboard = () => {
   const handleDeleteInterest = async (interest) => {
     try {
       await axios.post(
-        `${API_BASE_URL}/api/user/add-interests`,
+        `${API_BASE_URL}/api/add-interests`,
         { interests: dashboardData.interests.filter((item) => item !== interest) },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
