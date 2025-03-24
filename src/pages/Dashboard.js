@@ -58,19 +58,45 @@ const Dashboard = () => {
   };
 
   // Delete interest
-  const handleDeleteInterest = async (interest) => {
-    try {
-      await axios.post(
-        `${API_BASE_URL}/api/user/add-interests`,
-        { interests: dashboardData.interests.filter((item) => item !== interest) },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-      fetchDashboardData(); // Refresh dashboard data
-      toast.success("Interest deleted successfully!");
-    } catch (err) {
-      toast.error("Failed to delete interest");
-    }
-  };
+  // const handleDeleteInterest = async (interest) => {
+  //   try {
+  //     await axios.post(
+  //       `${API_BASE_URL}/api/user/add-interests`,
+  //       { interests: dashboardData.interests.filter((item) => item !== interest) },
+  //       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+  //     );
+  //     fetchDashboardData(); // Refresh dashboard data
+  //     toast.success("Interest deleted successfully!");
+  //   } catch (err) {
+  //     toast.error("Failed to delete interest");
+  //   }
+  // };
+      const handleDeleteInterest = async (interestToDelete) => {
+      const token = localStorage.getItem('token');
+      try {
+        const updatedInterests = profileData.interests.filter((interest) => interest !== interestToDelete);
+        const response = await fetch(`${API_BASE_URL}/api/add-interests`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ interests: updatedInterests }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setProfileData(data.user); // Profile data update karo
+          setError('');
+          toast.success('Interest deleted successfully!'); // Display success toast
+        } else {
+          setError(data.message || 'Failed to delete interest');
+          toast.error(data.message || 'Failed to delete interest'); // Display error toast
+        }
+      } catch (err) {
+        setError('An error occurred. Please try again.');
+        toast.error('An error occurred. Please try again.'); // Display error toast
+      }
+    };
 
   useEffect(() => {
     fetchDashboardData();
